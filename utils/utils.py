@@ -33,7 +33,8 @@ def readucr(filename):
 
 def create_directory(directory_path): 
     if os.path.exists(directory_path): 
-        return None
+#        return None
+        return directory_path
     else: 
         try: 
             os.makedirs(directory_path)
@@ -147,58 +148,60 @@ def transform_to_same_length(x,n_var,max_length):
     return ucr_x
 
 def transform_mts_to_ucr_format():
-    mts_root_dir = '/mnt/Other/mtsdata/'
-    mts_out_dir = '/mnt/nfs/casimir/archives/mts_archive/'
-    for dataset_name in MTS_DATASET_NAMES:
-        # print('dataset_name',dataset_name)
+    mts_root_dir = '/home/mariano/mariano/misc/dl-4-tsc/archives/mts_archive/'
+    mts_out_dir = '/home/mariano/mariano/misc/dl-4-tsc/archives/mts_archive/'
+#    for dataset_name in MTS_DATASET_NAMES:
+    dataset_name = 'ECG'
+    
+    # print('dataset_name',dataset_name)
 
-        out_dir = mts_out_dir+dataset_name+'/'
+    out_dir = mts_out_dir+dataset_name+'/'
 
-        # if create_directory(out_dir) is None:
-        #     print('Already_done')
-        #     continue
+    # if create_directory(out_dir) is None:
+    #     print('Already_done')
+    #     continue
 
-        a = loadmat(mts_root_dir+dataset_name+'/'+dataset_name+'.mat')
-        a = a['mts']
-        a = a[0,0]
+    a = loadmat(mts_root_dir+dataset_name+'/'+dataset_name+'.mat')
+    a = a['mts']
+    a = a[0,0]
 
-        dt = a.dtype.fields.keys()
-        dt = list(dt)
+    dt = a.dtype.fields.keys()
+    dt = list(dt)
 
-        for i in range(len(dt)):
-            if dt[i] == 'train':
-                x_train=a[i].reshape(max(a[i].shape))
-            elif dt[i] == 'test':
-                x_test = a[i].reshape(max(a[i].shape))
-            elif dt[i]=='trainlabels':
-                y_train = a[i].reshape(max(a[i].shape))
-            elif dt[i]=='testlabels':
-                y_test = a[i].reshape(max(a[i].shape))
+    for i in range(len(dt)):
+        if dt[i] == 'train':
+            x_train=a[i].reshape(max(a[i].shape))
+        elif dt[i] == 'test':
+            x_test = a[i].reshape(max(a[i].shape))
+        elif dt[i]=='trainlabels':
+            y_train = a[i].reshape(max(a[i].shape))
+        elif dt[i]=='testlabels':
+            y_test = a[i].reshape(max(a[i].shape))
 
-        # x_train = a[1][0]
-        # y_train = a[0][:,0]
-        # x_test = a[3][0]
-        # y_test = a[2][:,0]
+    # x_train = a[1][0]
+    # y_train = a[0][:,0]
+    # x_test = a[3][0]
+    # y_test = a[2][:,0]
 
-        n_var = x_train[0].shape[0]
+    n_var = x_train[0].shape[0]
 
-        max_length = get_func_length(x_train,x_test,func=max)
-        min_length = get_func_length(x_train,x_test,func=min)
+    max_length = get_func_length(x_train,x_test,func=max)
+    min_length = get_func_length(x_train,x_test,func=min)
 
-        print(dataset_name, 'max',max_length,'min', min_length)
-        print()
-        continue
+    print(dataset_name, 'max',max_length,'min', min_length)
+    print()
+#        continue
 
-        x_train = transform_to_same_length(x_train,n_var,max_length)
-        x_test = transform_to_same_length(x_test,n_var,max_length)
+    x_train = transform_to_same_length(x_train,n_var,max_length)
+    x_test = transform_to_same_length(x_test,n_var,max_length)
 
-        # save them
-        np.save(out_dir+'x_train.npy',x_train)
-        np.save(out_dir+'y_train.npy',y_train)
-        np.save(out_dir+'x_test.npy',x_test)
-        np.save(out_dir+'y_test.npy',y_test)
+    # save them
+    np.save(out_dir+'x_train.npy',x_train)
+    np.save(out_dir+'y_train.npy',y_train)
+    np.save(out_dir+'x_test.npy',x_test)
+    np.save(out_dir+'y_test.npy',y_test)
 
-        print('Done')
+    print('Done')
 
 def calculate_metrics(y_true, y_pred,duration,y_true_val=None,y_pred_val=None): 
     res = pd.DataFrame(data = np.zeros((1,4),dtype=np.float), index=[0], 
